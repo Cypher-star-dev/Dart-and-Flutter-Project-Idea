@@ -23,7 +23,7 @@ class DatabaseService {
     Hive.registerAdapter(EnergySourceAdapter());
     Hive.registerAdapter(HouseAdapter());
     Hive.registerAdapter(EnergyReadingAdapter());
-    Hive.registerAdapter(LimitTypeAdapter());
+    Hive.registerAdapter(LimitTypeAdapter()); // Assuming this adapter is for EnergyLimit
     Hive.registerAdapter(EnergyLimitAdapter());
     Hive.registerAdapter(RateTierAdapter());
 
@@ -35,19 +35,19 @@ class DatabaseService {
   }
 
   // --- House Operations ---
-  List<House> getHouses() {
+  static List<House> getHouses() {
     return _housesBox.values.toList();
   }
 
-  Future<void> addHouse(House house) async {
+  static Future<void> addHouse(House house) async {
     await _housesBox.put(house.id, house);
   }
 
-  Future<void> updateHouse(House house) async {
+  static Future<void> updateHouse(House house) async {
     await _housesBox.put(house.id, house);
   }
 
-  Future<void> deleteHouse(String houseId) async {
+  static Future<void> deleteHouse(String houseId) async {
     await _housesBox.delete(houseId);
     // Also delete associated readings, limits, and rate tiers
     final readingsToDelete = _readingsBox.values.where((r) => r.houseId == houseId).map((r) => r.id).toList();
@@ -59,53 +59,53 @@ class DatabaseService {
   }
 
   // --- EnergyReading Operations ---
-  List<EnergyReading> getReadingsForHouse(String houseId) {
+  static List<EnergyReading> getReadingsForHouse(String houseId) {
     return _readingsBox.values.where((reading) => reading.houseId == houseId).toList();
   }
 
-  Future<void> addReading(EnergyReading reading) async {
+  static Future<void> addReading(EnergyReading reading) async {
     await _readingsBox.put(reading.id, reading);
   }
 
-  Future<void> updateReading(EnergyReading reading) async {
+  static Future<void> updateReading(EnergyReading reading) async {
     await _readingsBox.put(reading.id, reading);
   }
 
-  Future<void> deleteReading(String readingId) async {
+  static Future<void> deleteReading(String readingId) async {
     await _readingsBox.delete(readingId);
   }
 
   // --- EnergyLimit Operations ---
-  List<EnergyLimit> getLimitsForHouse(String houseId) {
+  static List<EnergyLimit> getLimitsForHouse(String houseId) {
     return _limitsBox.values.where((limit) => limit.houseId == houseId).toList();
   }
 
-  Future<void> addLimit(EnergyLimit limit) async {
+  static Future<void> addLimit(EnergyLimit limit) async {
     await _limitsBox.put(limit.id, limit);
   }
 
-  Future<void> updateLimit(EnergyLimit limit) async {
+  static Future<void> updateLimit(EnergyLimit limit) async {
     await _limitsBox.put(limit.id, limit);
   }
 
-  Future<void> deleteLimit(String limitId) async {
+  static Future<void> deleteLimit(String limitId) async {
     await _limitsBox.delete(limitId);
   }
 
   // --- RateTier Operations ---
-  List<RateTier> getRateTiersForHouse(String houseId) {
+  static List<RateTier> getRateTiersForHouse(String houseId) {
     return _rateTiersBox.values.where((tier) => tier.houseId == houseId).toList();
   }
 
-  Future<void> addRateTier(RateTier tier) async {
+  static Future<void> addRateTier(RateTier tier) async {
     await _rateTiersBox.put(tier.id, tier);
   }
 
-  Future<void> updateRateTier(RateTier tier) async {
+  static Future<void> updateRateTier(RateTier tier) async {
     await _rateTiersBox.put(tier.id, tier);
   }
 
-  Future<void> deleteRateTier(String tierId) async {
+  static Future<void> deleteRateTier(String tierId) async {
     await _rateTiersBox.delete(tierId);
   }
 }

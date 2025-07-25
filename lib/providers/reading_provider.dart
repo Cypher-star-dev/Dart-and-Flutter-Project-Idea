@@ -3,24 +3,23 @@
 import 'package:flutter/material.dart';
 import 'package:energy_monitor/models/energy_reading.dart';
 import 'package:energy_monitor/models/energy_source.dart';
-import 'package:energy_monitor/models/house.dart'; // To potentially update house stats
-import 'package:energy_monitor/services/database_service.dart';
-import 'package:uuid/uuid.dart'; // For generating unique IDs
+import 'package:energy_monitor/models/house.dart';
+import 'package:energy_monitor/services/database_service.dart'; // Now uses static methods
+import 'package:uuid/uuid.dart';
+import 'package:collection/collection.dart'; // Import for firstWhereOrNull
 
 class ReadingProvider with ChangeNotifier {
-  final DatabaseService _databaseService = DatabaseService();
+  // No longer need to instantiate DatabaseService as its methods will be static
+  // final DatabaseService _databaseService = DatabaseService();
   final Uuid _uuid = const Uuid();
 
-  List<EnergyReading> _readings = [];
-  Map<String, List<EnergyReading>> _readingsByHouse = {}; // Cache readings per house
-
-  // Initial load of all readings (could be optimized later for large datasets)
-  // For now, let's just get the readings for a specific house when requested.
+  List<EnergyReading> _readings = []; // This might still be useful for a global list
+  Map<String, List<EnergyReading>> _readingsByHouse = {};
 
   // Get readings for a specific house
   List<EnergyReading> getReadingsForHouse(String houseId) {
     if (!_readingsByHouse.containsKey(houseId)) {
-      _readingsByHouse[houseId] = _databaseService.getReadingsForHouse(houseId);
+      _readingsByHouse[houseId] = DatabaseService.getReadingsForHouse(houseId); // Call static method
     }
     return _readingsByHouse[houseId]!;
   }
@@ -42,7 +41,7 @@ class ReadingProvider with ChangeNotifier {
       source: source,
     );
 
-    await _databaseService.addReading(newReading);
+    await DatabaseService.addReading(newReading); // Call static method
 
     // Update local cache
     if (_readingsByHouse.containsKey(houseId)) {
@@ -51,21 +50,21 @@ class ReadingProvider with ChangeNotifier {
       _readingsByHouse[houseId] = [newReading];
     }
 
-    // Optional: Update house's last updated time and current usage stats
-    // You might want to do more complex calculations in CalculationService
-    // For now, let's just update lastUpdated
-    House? house = _databaseService.getHouses().firstWhere(
+    // Update house's last updated time and current usage stats
+    House? house = DatabaseService.getHouses().firstWhereOrNull( // Use firstWhereOrNull
       (h) => h.id == houseId,
-      orElse: () => null as House, // Handle case where house might not be found (shouldn't happen here)
     );
 
     if (house != null) {
       house.lastUpdated = DateTime.now();
-      // For simplicity, we'll just increment current balance and kWh.
-      // A more robust approach would be to recalculate monthly totals based on limits.
       house.currentBalance += costPaid;
       house.currentKWhConsumption += kwhUsed;
-      await _databaseService.updateHouse(house); // Update house in DB
+      await DatabaseService.updateHouse(house); // Call static method
+      // Notify HouseProvider about the change in house stats
+      // This requires accessing HouseProvider from here, which can be done via context or by
+      // having a reference passed (more complex). For simplicity now, we'll let HouseDetailScreen's
+      // consumer of HouseProvider handle its own rebuild, but it won't be immediate here.
+      // A better long-term solution involves directly updating the HouseProvider's state or using a callback.
     }
 
     notifyListeners();
@@ -73,13 +72,11 @@ class ReadingProvider with ChangeNotifier {
 
   // Update an existing energy reading
   Future<void> updateEnergyReading(EnergyReading updatedReading) async {
-    // Before updating, subtract old values from house totals
     final oldReading = _readingsByHouse[updatedReading.houseId]
-        ?.firstWhere((r) => r.id == updatedReading.id, orElse: () => null as EnergyReading);
+        ?.firstWhereOrNull((r) => r.id == updatedReading.id); // Use firstWhereOrNull
 
-    House? house = _databaseService.getHouses().firstWhere(
+    House? house = DatabaseService.getHouses().firstWhereOrNull( // Use firstWhereOrNull
       (h) => h.id == updatedReading.houseId,
-      orElse: () => null as House,
     );
 
     if (house != null && oldReading != null) {
@@ -87,7 +84,7 @@ class ReadingProvider with ChangeNotifier {
       house.currentKWhConsumption -= oldReading.kwhUsed;
     }
 
-    await _databaseService.updateReading(updatedReading);
+    await DatabaseService.updateReading(updatedReading); // Call static method
 
     // Update local cache
     final houseReadings = _readingsByHouse[updatedReading.houseId];
@@ -103,7 +100,7 @@ class ReadingProvider with ChangeNotifier {
       house.currentBalance += updatedReading.costPaid;
       house.currentKWhConsumption += updatedReading.kwhUsed;
       house.lastUpdated = DateTime.now();
-      await _databaseService.updateHouse(house);
+      await DatabaseService.updateHouse(house); // Call static method
     }
 
     notifyListeners();
@@ -111,23 +108,21 @@ class ReadingProvider with ChangeNotifier {
 
   // Delete an energy reading
   Future<void> deleteEnergyReading(String readingId, String houseId) async {
-    // Before deleting, subtract values from house totals
     final readingToDelete = _readingsByHouse[houseId]
-        ?.firstWhere((r) => r.id == readingId, orElse: () => null as EnergyReading);
+        ?.firstWhereOrNull((r) => r.id == readingId); // Use firstWhereOrNull
 
-    House? house = _databaseService.getHouses().firstWhere(
+    House? house = DatabaseService.getHouses().firstWhereOrNull( // Use firstWhereOrNull
       (h) => h.id == houseId,
-      orElse: () => null as House,
     );
 
     if (house != null && readingToDelete != null) {
       house.currentBalance -= readingToDelete.costPaid;
       house.currentKWhConsumption -= readingToDelete.kwhUsed;
       house.lastUpdated = DateTime.now();
-      await _databaseService.updateHouse(house);
+      await DatabaseService.updateHouse(house); // Call static method
     }
 
-    await _databaseService.deleteReading(readingId);
+    await DatabaseService.deleteReading(readingId); // Call static method
 
     // Update local cache
     _readingsByHouse[houseId]?.removeWhere((r) => r.id == readingId);
@@ -136,7 +131,7 @@ class ReadingProvider with ChangeNotifier {
 
   // Refresh readings for a specific house (e.g., after an external update)
   Future<void> refreshReadingsForHouse(String houseId) async {
-    _readingsByHouse[houseId] = _databaseService.getReadingsForHouse(houseId);
+    _readingsByHouse[houseId] = DatabaseService.getReadingsForHouse(houseId); // Call static method
     notifyListeners();
   }
 }
