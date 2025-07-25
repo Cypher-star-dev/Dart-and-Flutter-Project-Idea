@@ -2,38 +2,55 @@
 
 name: energy_monitor
 description: An app to help households track and reduce electricity use.
-publish_to: 'none' 
+publish_to: 'none'
 
 version: 1.0.0+1
 
-environment:         # <--- THIS IS THE 'environment' BLOCK
-  sdk: '^3.8.0'      # <--- THIS IS WHERE YOU MAKE THE CHANGE
+environment:
+  sdk: '^3.8.0' # Keep this as ^3.8.0
 
 dependencies:
   flutter:
     sdk: flutter
-  uuid: ^4.3.0
+
+  # State Management
   provider: ^6.0.5
+
   # Local Database
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
-  path_provider: ^2.1.1
-  # Date and Time Utilities
-  intl: ^0.18.1
-  # Charting
-  fl_chart: ^0.68.0
-  # Notifications
-  flutter_local_notifications: ^17.1.0
-  # File Export
-  csv: ^6.0.0
-  excel: ^4.0.6
-  pdf: ^3.10.4
-  file_saver: ^0.2.14
+  hive: ^2.2.3 # This version is okay for now
+  hive_flutter: ^1.1.0 # This version is okay for now
+  path_provider: ^2.1.1 # This version is okay for now
+
+  # Unique IDs
+  uuid: ^4.3.0 # This version is okay for now
+
+  # Date and Time Utilities - **UPDATE THIS**
+  intl: ^0.20.2 # Latest compatible version. Was 0.18.1
+
+  # Charting - **UPDATE THIS**
+  fl_chart: ^1.0.0 # Latest stable version. Was 0.68.0
+
+  # Notifications - **UPDATE THESE**
+  flutter_local_notifications: ^19.3.1 # Latest stable. Was 17.2.4
+  flutter_local_notifications_linux: ^6.0.0 # Match notification platform packages
+  flutter_local_notifications_platform_interface: ^9.1.0 # Match notification platform packages
+
+  # File Export - **UPDATE THESE**
+  csv: ^6.0.0 # This version is okay for now
+  excel: ^4.0.6 # This version is okay for now
+  pdf: ^3.10.4 # This version is okay for now
+  file_saver: ^0.3.1 # Latest version. Was 0.2.14
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
-  # Hive code generation
-  hive_generator: ^2.0.1
-  build_runner: ^2.4.6
+  flutter_lints: ^6.0.0 # Latest stable. Was 3.0.2
+
+  # Hive code generation - **UPDATE THESE**
+  hive_generator: ^2.0.1 # This version is okay for now
+  build_runner: ^2.5.4 # Latest compatible version. Was 2.5.4
+  analyzer: ^6.11.0
+  # Note: Sometimes build_runner and build_runner_core need to be tightly coupled.
+  # Running `flutter pub outdated` and then `flutter pub upgrade --major-versions` (with caution)
+  # or manually updating to the latest suggested by `pub.dev` is the way.
+  # For now, let's just make sure build_runner itself is updated.

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:energy_monitor/services/database_service.dart';
 import 'package:energy_monitor/providers/house_provider.dart';
-import 'package:energy_monitor/screens/home_screen.dart'; // We'll create this next
+import 'package:energy_monitor/providers/reading_provider.dart'; // Import ReadingProvider
+import 'package:energy_monitor/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => HouseProvider()),
-        // Add other providers here later: ReadingProvider, SettingsProvider, NotificationProvider
+        ChangeNotifierProvider(create: (_) => ReadingProvider()), // Add ReadingProvider here
+        // Add other providers here later: SettingsProvider, NotificationProvider, LimitProvider, RateTierProvider
       ],
       child: MaterialApp(
         title: 'Energy Monitor',
@@ -28,7 +30,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blueGrey,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: const HomeScreen(), // Our main entry point screen
+        home: const HomeScreen(),
       ),
     );
   }
